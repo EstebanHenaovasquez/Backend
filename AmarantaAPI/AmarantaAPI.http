@@ -1,0 +1,6 @@
+@AmarantaAPI_HostAddress = http://localhost:5201
+
+GET {{AmarantaAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
