@@ -51,6 +51,7 @@ namespace AmarantaAPI.Controllers
             if (cliente == null) return NotFound();
 
             if (dto.ImagenPerfil != null) cliente.ImagenPerfil = dto.ImagenPerfil;
+            if (dto.TipoDocumento != null) cliente.TipoDocumento = dto.TipoDocumento;
             if (dto.Documento != null) cliente.Documento = dto.Documento;
             if (dto.Nombre != null) cliente.Nombre = dto.Nombre;
             if (dto.Apellido != null) cliente.Apellido = dto.Apellido;
@@ -75,6 +76,7 @@ namespace AmarantaAPI.Controllers
             var cliente = new Cliente
             {
                 ImagenPerfil = dto.ImagenPerfil,
+                TipoDocumento = dto.TipoDocumento,  
                 Documento = dto.Documento,
                 Nombre = dto.Nombre,
                 Apellido = dto.Apellido,

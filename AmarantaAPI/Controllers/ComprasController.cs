@@ -23,16 +23,37 @@ namespace AmarantaAPI.Controllers
 
         // GET: api/Compras
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Compra>>> GetCompras()
+        public async Task<ActionResult<IEnumerable<CompraResponseDTO>>> GetCompras()
         {
-            return await _context.Compras.ToListAsync();
+            return await _context.Compras
+                .Include(c => c.IdProveedorNavigation) 
+                .Include(c => c.IdUsuarioNavigation)
+                .Select(c => new CompraResponseDTO
+                {
+                    CodigoCompra = c.CodigoCompra,
+                    FechaCompra = c.FechaCompra,
+                    PrecioTotal = c.PrecioTotal,
+                    Estado = c.Estado,
+                    IdUsuario = c.IdUsuario,
+                    NombreUsuario = c.IdUsuarioNavigation != null
+                    ? c.IdUsuarioNavigation.Nombre + " " + c.IdUsuarioNavigation.Apellido
+                    : null,
+                    IdProveedor = c.IdProveedor,
+                    NombreEmpresa = c.IdProveedorNavigation != null
+                    ? c.IdProveedorNavigation.NombreEmpresa
+                    : null
+                })
+                .ToListAsync();
         }
 
         // GET: api/Compras/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Compra>> GetCompra(int id)
         {
-            var compra = await _context.Compras.FindAsync(id);
+            var compra = await _context.Compras
+                .Include(c => c.IdProveedorNavigation)
+                .Include(c => c.IdUsuarioNavigation)
+                .FirstOrDefaultAsync(c => c.CodigoCompra == id);
 
             if (compra == null)
             {
@@ -70,7 +91,8 @@ namespace AmarantaAPI.Controllers
                 FechaCompra = dto.FechaCompra,
                 PrecioTotal = dto.PrecioTotal,
                 Estado = dto.Estado ?? "Pendiente", // valor por defecto si no se envía
-                IdUsuario = dto.IdUsuario
+                IdUsuario = dto.IdUsuario,
+                IdProveedor = dto.IdProveedor 
             };
 
             _context.Compras.Add(compra);

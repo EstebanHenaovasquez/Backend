@@ -80,8 +80,11 @@ namespace AmarantaAPI.Controllers
             if (dto.Descripcion != null) categoria.Descripcion = dto.Descripcion;
 
             await _context.SaveChangesAsync();
-            return NoContent();
+
+            // ✅ devolvemos el objeto actualizado
+            return Ok(categoria);
         }
+
 
         [HttpPost]        
         public async Task<ActionResult<CProducto>> PostCProducto([FromBody] CrearCProductoDTO dto)

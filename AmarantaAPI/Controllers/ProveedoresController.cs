@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using AmarantaAPI.DTOs;
+using AmarantaAPI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using AmarantaAPI.Models;
+
 
 namespace AmarantaAPI.Controllers
 {
@@ -44,43 +42,45 @@ namespace AmarantaAPI.Controllers
         // PUT: api/Proveedores/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProveedore(int id, Proveedore proveedore)
+        public async Task<IActionResult> PutProveedor(int id, [FromBody] ActualizarProveedorDTO dto)
         {
-            if (id != proveedore.IdProveedor)
+            var proveedor = await _context.Proveedores.FindAsync(id);
+            if (proveedor == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(proveedore).State = EntityState.Modified;
+            // Solo se actualizan los campos enviados
+            if (dto.Nit != null) proveedor.Nit = dto.Nit;
+            if (dto.NombreEmpresa != null) proveedor.NombreEmpresa = dto.NombreEmpresa;
+            if (dto.Representante != null) proveedor.Representante = dto.Representante;
+            if (dto.Correo != null) proveedor.Correo = dto.Correo;
+            if (dto.Telefono != null) proveedor.Telefono = dto.Telefono;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProveedoreExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
+
         // POST: api/Proveedores
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Proveedore>> PostProveedore(Proveedore proveedore)
+        public async Task<ActionResult<Proveedore>> PostProveedor([FromBody] CrearProveedorDTO dto)
         {
-            _context.Proveedores.Add(proveedore);
+            var nuevoProveedor = new Proveedore
+            {
+                Nit = dto.Nit,
+                NombreEmpresa = dto.NombreEmpresa,
+                Representante = dto.Representante,
+                Correo = dto.Correo,
+                Telefono = dto.Telefono
+            };
+
+            _context.Proveedores.Add(nuevoProveedor);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProveedore", new { id = proveedore.IdProveedor }, proveedore);
+            return CreatedAtAction("GetProveedore", new { id = nuevoProveedor.IdProveedor }, nuevoProveedor);
         }
 
         // DELETE: api/Proveedores/5

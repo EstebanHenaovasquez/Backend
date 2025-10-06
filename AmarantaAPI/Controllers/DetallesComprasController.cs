@@ -20,26 +20,7 @@ namespace AmarantaAPI.Controllers
             _context = context;
         }
 
-        // GET: api/DetallesCompras
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<DetallesCompra>>> GetDetallesCompras()
-        {
-            return await _context.DetallesCompras.ToListAsync();
-        }
-
-        // GET: api/DetallesCompras/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<DetallesCompra>> GetDetallesCompra(int id)
-        {
-            var detallesCompra = await _context.DetallesCompras.FindAsync(id);
-
-            if (detallesCompra == null)
-            {
-                return NotFound();
-            }
-
-            return detallesCompra;
-        }
+        
 
         // PUT: api/DetallesCompras/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -103,5 +84,62 @@ namespace AmarantaAPI.Controllers
         {
             return _context.DetallesCompras.Any(e => e.CodigoDetalleCompra == id);
         }
+
+
+            // ✅ GET: api/DetallesCompras
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<DetallesCompra>>> GetDetallesCompras()
+        {
+            return await _context.DetallesCompras
+                .Include(d => d.CodigoProductoNavigation)
+                .Include(d => d.CodigoCompraNavigation)
+                .ToListAsync();
+        }
+
+        // ✅ GET: api/DetallesCompras/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<DetallesCompra>> GetDetalleCompra(int id)
+        {
+            var detalle = await _context.DetallesCompras
+                .Include(d => d.CodigoProductoNavigation)
+                .Include(d => d.CodigoCompraNavigation)
+                .FirstOrDefaultAsync(d => d.CodigoDetalleCompra == id);
+
+            if (detalle == null)
+            {
+                return NotFound();
+            }
+
+            return detalle;
+        }
+
+        // ✅ GET: api/DetallesCompras/compra/5 (detalles por compra con productos)
+        [HttpGet("compra/{idCompra}")]
+        public async Task<ActionResult<IEnumerable<object>>> GetDetallesByCompra(int idCompra)
+        {
+            var detalles = await _context.DetallesCompras
+                .Include(d => d.CodigoProductoNavigation)
+                .Where(d => d.CodigoCompra == idCompra)
+                .Select(d => new
+                {
+                    d.CodigoDetalleCompra,
+                    d.CodigoCompra,
+                    d.CodigoProducto,
+                    NombreProducto = d.CodigoProductoNavigation != null ? d.CodigoProductoNavigation.NombreProducto : null,
+                    PrecioUnitario = d.CodigoProductoNavigation != null ? d.CodigoProductoNavigation.Precio : null,
+                    d.Cantidad,
+                    d.Subtotal
+                })
+                .ToListAsync();
+
+            if (detalles == null || !detalles.Any())
+            {
+                return NotFound(new { message = "No se encontraron detalles para esta compra." });
+            }
+
+            return Ok(detalles);
+        }
+
     }
+
 }

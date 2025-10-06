@@ -123,6 +123,7 @@ public partial class AmarantaFinalContext : DbContext
             entity.ToTable("COMPRAS");
 
             entity.Property(e => e.CodigoCompra).HasColumnName("Codigo_Compra");
+            entity.Property(e => e.IdProveedor).HasColumnName("Id_Proveedor");
             entity.Property(e => e.Estado)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -136,6 +137,10 @@ public partial class AmarantaFinalContext : DbContext
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Compras)
                 .HasForeignKey(d => d.IdUsuario)
                 .HasConstraintName("FK__COMPRAS__Id_Usua__5535A963");
+
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Compras)
+                .HasForeignKey(d => d.IdProveedor)
+                .HasConstraintName("FK__DETALLES___Id_Pr__5812160E");
         });
 
         modelBuilder.Entity<DetallesCompra>(entity =>
@@ -147,7 +152,7 @@ public partial class AmarantaFinalContext : DbContext
             entity.Property(e => e.CodigoDetalleCompra).HasColumnName("Codigo_Detalle_Compra");
             entity.Property(e => e.CodigoCompra).HasColumnName("Codigo_Compra");
             entity.Property(e => e.CodigoProducto).HasColumnName("Codigo_Producto");
-            entity.Property(e => e.IdProveedor).HasColumnName("Id_Proveedor");
+            
 
             entity.HasOne(d => d.CodigoCompraNavigation).WithMany(p => p.DetallesCompras)
                 .HasForeignKey(d => d.CodigoCompra)
@@ -157,9 +162,7 @@ public partial class AmarantaFinalContext : DbContext
                 .HasForeignKey(d => d.CodigoProducto)
                 .HasConstraintName("FK__DETALLES___Codig__59FA5E80");
 
-            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.DetallesCompras)
-                .HasForeignKey(d => d.IdProveedor)
-                .HasConstraintName("FK__DETALLES___Id_Pr__5812160E");
+            
         });
 
         modelBuilder.Entity<DetallesPedido>(entity =>
@@ -196,16 +199,13 @@ public partial class AmarantaFinalContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("Fecha_Pedido");
             entity.Property(e => e.IdCliente).HasColumnName("Id_Cliente");
-            entity.Property(e => e.IdUsuario).HasColumnName("Id_Usuario");
             entity.Property(e => e.PrecioTotal).HasColumnName("Precio_Total");
 
             entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.Pedidos)
                 .HasForeignKey(d => d.IdCliente)
                 .HasConstraintName("FK__PEDIDOS__Id_Clie__60A75C0F");
 
-            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Pedidos)
-                .HasForeignKey(d => d.IdUsuario)
-                .HasConstraintName("FK__PEDIDOS__Id_Usua__5FB337D6");
+            
         });
 
         modelBuilder.Entity<Producto>(entity =>

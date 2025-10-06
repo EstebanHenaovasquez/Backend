@@ -5,6 +5,8 @@ namespace AmarantaAPI.DTOs
     public class CrearClienteDTO
     {
         public string? ImagenPerfil { get; set; }
+        [Required]
+        public string TipoDocumento { get; set; }
 
         [Required]
         public string Documento { get; set; }
@@ -37,6 +39,7 @@ namespace AmarantaAPI.DTOs
     public class ActualizarClienteDTO
     {
         public string? ImagenPerfil { get; set; }
+        public string? TipoDocumento { get; set; }
         public string? Documento { get; set; }
         public string? Nombre { get; set; }
         public string? Apellido { get; set; }

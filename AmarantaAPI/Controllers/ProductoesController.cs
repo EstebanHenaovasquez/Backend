@@ -39,16 +39,10 @@ namespace AmarantaAPI.Controllers
             {
                 return BadRequest(ModelState);
             }
-
-            foreach (var key in Request.Form.Keys)
-            {
-                Console.WriteLine($"Campo recibido: {key} = {Request.Form[key]}");
-            }
-            Console.WriteLine($"Archivo recibido: {(imagen != null ? imagen.FileName : "ninguno")}");
-
+          
             string urlImagen = null;
 
-            if (imagen != null)
+            if (dto.Imagen != null && dto.Imagen.Length > 0)
             {
                urlImagen = await _cloudinaryService.SubirImagenAsync(imagen);
             }

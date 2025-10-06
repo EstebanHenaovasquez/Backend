@@ -24,14 +24,20 @@ namespace AmarantaAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DetallesPedido>>> GetDetallesPedidos()
         {
-            return await _context.DetallesPedidos.ToListAsync();
+            return await _context.DetallesPedidos
+                .Include(d => d.CodigoProductoNavigation)
+                .Include(d => d.CodigoPedidoNavigation)
+                .ToListAsync();
         }
 
         // GET: api/DetallesPedidoes/5
         [HttpGet("{id}")]
         public async Task<ActionResult<DetallesPedido>> GetDetallesPedido(int id)
         {
-            var detallesPedido = await _context.DetallesPedidos.FindAsync(id);
+            var detallesPedido = await _context.DetallesPedidos
+                .Include(d => d.CodigoProductoNavigation)
+                .Include(d => d.CodigoPedidoNavigation)
+                .FirstOrDefaultAsync(d => d.CodigoDetallePedido == id);
 
             if (detallesPedido == null)
             {

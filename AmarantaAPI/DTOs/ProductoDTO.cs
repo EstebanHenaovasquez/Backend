@@ -15,6 +15,8 @@ namespace AmarantaAPI.DTOs
 
         [Required]
         public int IdCategoria { get; set; }
+
+        public IFormFile Imagen { get; set; }
     }
 
     public class ActualizarProductoDTO
