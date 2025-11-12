@@ -17,6 +17,8 @@ public partial class Producto
 
     public int? IdCategoria { get; set; }
 
+    public bool Estado { get; set; }
+
     public virtual ICollection<DetallesCompra> DetallesCompras { get; set; } = new List<DetallesCompra>();
 
     public virtual ICollection<DetallesPedido> DetallesPedidos { get; set; } = new List<DetallesPedido>();

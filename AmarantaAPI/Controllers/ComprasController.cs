@@ -26,18 +26,13 @@ namespace AmarantaAPI.Controllers
         public async Task<ActionResult<IEnumerable<CompraResponseDTO>>> GetCompras()
         {
             return await _context.Compras
-                .Include(c => c.IdProveedorNavigation) 
-                .Include(c => c.IdUsuarioNavigation)
+                .Include(c => c.IdProveedorNavigation)
                 .Select(c => new CompraResponseDTO
                 {
                     CodigoCompra = c.CodigoCompra,
                     FechaCompra = c.FechaCompra,
                     PrecioTotal = c.PrecioTotal,
                     Estado = c.Estado,
-                    IdUsuario = c.IdUsuario,
-                    NombreUsuario = c.IdUsuarioNavigation != null
-                    ? c.IdUsuarioNavigation.Nombre + " " + c.IdUsuarioNavigation.Apellido
-                    : null,
                     IdProveedor = c.IdProveedor,
                     NombreEmpresa = c.IdProveedorNavigation != null
                     ? c.IdProveedorNavigation.NombreEmpresa
@@ -52,7 +47,6 @@ namespace AmarantaAPI.Controllers
         {
             var compra = await _context.Compras
                 .Include(c => c.IdProveedorNavigation)
-                .Include(c => c.IdUsuarioNavigation)
                 .FirstOrDefaultAsync(c => c.CodigoCompra == id);
 
             if (compra == null)
@@ -74,7 +68,6 @@ namespace AmarantaAPI.Controllers
             if (dto.FechaCompra != null) compra.FechaCompra = dto.FechaCompra;
             if (dto.PrecioTotal.HasValue) compra.PrecioTotal = dto.PrecioTotal;
             if (dto.Estado != null) compra.Estado = dto.Estado;
-            if (dto.IdUsuario.HasValue) compra.IdUsuario = dto.IdUsuario;
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -91,7 +84,6 @@ namespace AmarantaAPI.Controllers
                 FechaCompra = dto.FechaCompra,
                 PrecioTotal = dto.PrecioTotal,
                 Estado = dto.Estado ?? "Pendiente", // valor por defecto si no se envía
-                IdUsuario = dto.IdUsuario,
                 IdProveedor = dto.IdProveedor 
             };
 

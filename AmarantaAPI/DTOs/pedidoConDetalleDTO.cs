@@ -3,6 +3,10 @@
     public class PedidoConDetallesDTO
     {
         public string FechaPedido { get; set; } = DateTime.Now.ToString("yyyy-MM-dd");
+        public string Direccion { get; set; }
+        public string Municipio { get; set; }
+        public string Departamento { get; set; }
+        public string Correo { get; set; }
         public int IdCliente { get; set; }
         public List<DetallePedidoDTO> Detalles { get; set; } = new();
     }
@@ -19,6 +23,11 @@
         public string FechaPedido { get; set; }
         public double PrecioTotal { get; set; }
         public string Estado { get; set; }
+        public string Direccion { get; set; }
+        public string Municipio { get; set; }
+        public string Departamento { get; set; }
+        public string Correo { get; set; }
+
         public int IdCliente { get; set; }
         public string NombreCliente { get; set; }
         public List<DetallePedidoResponseDTO> Detalles { get; set; } = new();

@@ -26,5 +26,6 @@ namespace AmarantaAPI.DTOs
         public int? Stock { get; set; }
         public double? Precio { get; set; }
         public int? IdCategoria { get; set; }
+        public bool? Estado { get; set; }
     }
 }

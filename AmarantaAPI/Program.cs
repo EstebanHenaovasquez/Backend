@@ -6,16 +6,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReactApp",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5173") // URL de tu React local
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-});
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowReactApp",
+//        policy =>
+//        {
+//            policy.WithOrigins("http://localhost:5173") // URL de tu React local
+//                  .AllowAnyHeader()
+//                  .AllowAnyMethod();
+//        });
+//});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -31,6 +31,10 @@ builder.Services.AddSingleton<AmarantaAPI.Services.CloudinaryService>();
 
 builder.Services.AddSingleton<EmailHelper>();
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+    );
 
 builder.Services.AddCors(options =>
 {
@@ -55,12 +59,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowReactApp");
+app.UseCors("PermitirFrontend");
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseCors("PermitirFrontend");
+
 
 app.Run();

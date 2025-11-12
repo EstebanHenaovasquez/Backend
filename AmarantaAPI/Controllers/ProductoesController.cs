@@ -69,9 +69,10 @@ namespace AmarantaAPI.Controllers
             if (producto == null) return NotFound();
 
             if (dto.NombreProducto != null) producto.NombreProducto = dto.NombreProducto;
-            if (dto.Stock.HasValue) producto.Stock = dto.Stock;
-            if (dto.Precio.HasValue) producto.Precio = dto.Precio;
-            if (dto.IdCategoria.HasValue) producto.IdCategoria = dto.IdCategoria;
+            if (dto.Stock.HasValue) producto.Stock = dto.Stock.Value;
+            if (dto.Precio.HasValue) producto.Precio = dto.Precio.Value;
+            if (dto.IdCategoria.HasValue) producto.IdCategoria = dto.IdCategoria.Value;
+            if (dto.Estado.HasValue) producto.Estado = dto.Estado.Value;
 
             if (nuevaImagen != null)
             {

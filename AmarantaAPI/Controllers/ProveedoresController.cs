@@ -68,19 +68,39 @@ namespace AmarantaAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Proveedore>> PostProveedor([FromBody] CrearProveedorDTO dto)
         {
+            // 🔸 Validación básica de datos
+            if (string.IsNullOrWhiteSpace(dto.Nit) || string.IsNullOrWhiteSpace(dto.Representante))
+            {
+                return BadRequest("El tipo y número de documento son obligatorios.");
+            }
+
+            // 🔸 Normalizar datos para comparar (sin mayúsculas/minúsculas ni espacios)
+            var tipoDoc = dto.Nit.Trim().ToUpper();
+            var numeroDoc = dto.Representante.Trim();
+
+            // 🔸 Verificar si ya existe un proveedor con el mismo tipo y número
+            bool existe = await _context.Proveedores
+                .AnyAsync(p => p.Nit.ToUpper() == tipoDoc && p.Representante.Trim() == numeroDoc);
+
+            if (existe)
+            {
+                return Conflict("No se permite crear un proveedor con documento repetido.");
+            }
+
+            // 🔸 Crear y guardar el nuevo proveedor
             var nuevoProveedor = new Proveedore
             {
-                Nit = dto.Nit,
-                NombreEmpresa = dto.NombreEmpresa,
-                Representante = dto.Representante,
-                Correo = dto.Correo,
-                Telefono = dto.Telefono
+                Nit = tipoDoc,
+                NombreEmpresa = dto.NombreEmpresa?.Trim(),
+                Representante = numeroDoc,
+                Correo = dto.Correo?.Trim(),
+                Telefono = dto.Telefono?.Trim()
             };
 
             _context.Proveedores.Add(nuevoProveedor);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProveedore", new { id = nuevoProveedor.IdProveedor }, nuevoProveedor);
+            return CreatedAtAction(nameof(GetProveedore), new { id = nuevoProveedor.IdProveedor }, nuevoProveedor);
         }
 
         // DELETE: api/Proveedores/5

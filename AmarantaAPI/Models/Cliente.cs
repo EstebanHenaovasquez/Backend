@@ -31,6 +31,10 @@ public partial class Cliente
 
     public int? IdRol { get; set; }
 
+    public int? IdUsuario { get; set; }
+
+    public virtual Usuario? Usuario { get; set; }
+
     public virtual Role? IdRolNavigation { get; set; }
 
     public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();

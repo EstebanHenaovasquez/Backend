@@ -12,23 +12,40 @@ namespace AmarantaAPI.Helpers
             _config = config;
         }
 
-        public async Task<bool> EnviarCorreoAsync(string destinatario, string asunto, string cuerpo)
+        /// <summary>
+        /// Envía un correo usando la plantilla HTML de Amaranta.
+        /// </summary>
+        public async Task<bool> EnviarCorreoAsync(string destinatario, string asunto, string codigo, string mensajePersonalizado = "")
         {
             var email = _config["EmailSettings:Email"];
             var appPassword = _config["EmailSettings:AppPassword"];
 
-            var mensaje = new MimeMessage();
-            mensaje.From.Add(new MailboxAddress("Amaranta", email));
-            mensaje.To.Add(MailboxAddress.Parse(destinatario));
-            mensaje.Subject = asunto;
-            mensaje.Body = new TextPart("plain") { Text = cuerpo };
+            // Ruta de la plantilla HTML
+            var rutaPlantilla = Path.Combine(Directory.GetCurrentDirectory(), "Template", "correo.html");
+            if (!File.Exists(rutaPlantilla))
+                throw new FileNotFoundException("No se encontró la plantilla de correo.", rutaPlantilla);
 
+            // Cargar el HTML y reemplazar los marcadores
+            string cuerpoHtml = await File.ReadAllTextAsync(rutaPlantilla);
+            cuerpoHtml = cuerpoHtml
+                .Replace("{{TITULO}}", asunto)
+                .Replace("{{MENSAJE}}", mensajePersonalizado)
+                .Replace("{{CODIGO}}", codigo);
+
+            // Crear el mensaje MIME
+            var mensajeCorreo = new MimeMessage();
+            mensajeCorreo.From.Add(new MailboxAddress("Amaranta", email));
+            mensajeCorreo.To.Add(MailboxAddress.Parse(destinatario));
+            mensajeCorreo.Subject = asunto;
+            mensajeCorreo.Body = new TextPart("html") { Text = cuerpoHtml };
+
+            // Enviar por SMTP
             using var smtp = new SmtpClient();
             try
             {
-                await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.Auto);
+                await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
                 await smtp.AuthenticateAsync(email, appPassword);
-                await smtp.SendAsync(mensaje);
+                await smtp.SendAsync(mensajeCorreo);
                 await smtp.DisconnectAsync(true);
                 return true;
             }

@@ -114,6 +114,13 @@ public partial class AmarantaFinalContext : DbContext
             entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.Clientes)
                 .HasForeignKey(d => d.IdRol)
                 .HasConstraintName("FK__CLIENTES__Id_Rol__5CD6CB2B");
+
+            entity.Property(e => e.IdUsuario).HasColumnName("IdUsuario");
+
+            entity.HasOne(d => d.Usuario) 
+                .WithOne(p => p.Cliente)           
+                .HasForeignKey<Cliente>(d => d.IdUsuario)
+                .HasConstraintName("FK_CLIENTES_USUARIOS_IdUsuario");
         });
 
         modelBuilder.Entity<Compra>(entity =>
@@ -131,12 +138,9 @@ public partial class AmarantaFinalContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("Fecha_Compra");
-            entity.Property(e => e.IdUsuario).HasColumnName("Id_Usuario");
             entity.Property(e => e.PrecioTotal).HasColumnName("Precio_Total");
 
-            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Compras)
-                .HasForeignKey(d => d.IdUsuario)
-                .HasConstraintName("FK__COMPRAS__Id_Usua__5535A963");
+            
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Compras)
                 .HasForeignKey(d => d.IdProveedor)
@@ -198,14 +202,19 @@ public partial class AmarantaFinalContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("Fecha_Pedido");
+            entity.Property(e => e.Correo).HasMaxLength(50);
+            entity.Property(e => e.Direccion).HasMaxLength(50);
+            entity.Property(e => e.Departamento).HasMaxLength(40);
+            entity.Property(e => e.Municipio).HasMaxLength(40);
             entity.Property(e => e.IdCliente).HasColumnName("Id_Cliente");
             entity.Property(e => e.PrecioTotal).HasColumnName("Precio_Total");
 
             entity.HasOne(d => d.IdClienteNavigation).WithMany(p => p.Pedidos)
                 .HasForeignKey(d => d.IdCliente)
                 .HasConstraintName("FK__PEDIDOS__Id_Clie__60A75C0F");
-
             
+
+
         });
 
         modelBuilder.Entity<Producto>(entity =>
@@ -306,6 +315,11 @@ public partial class AmarantaFinalContext : DbContext
             entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.Usuarios)
                 .HasForeignKey(d => d.IdRol)
                 .HasConstraintName("FK__USUARIOS__Id_Rol__4BAC3F29");
+
+            entity.HasOne(u => u.Cliente)
+                .WithOne(c => c.Usuario)
+                .HasForeignKey<Cliente>(c => c.IdUsuario)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

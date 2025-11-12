@@ -16,8 +16,7 @@ public partial class Compra
 
     public string? Estado { get; set; }
 
-    [Column("Id_Usuario")]
-    public int? IdUsuario { get; set; }
+    
 
     [Column("Id_Proveedor")]
     public int? IdProveedor { get; set; }
@@ -26,5 +25,5 @@ public partial class Compra
 
     public virtual ICollection<DetallesCompra> DetallesCompras { get; set; } = new List<DetallesCompra>();
 
-    public virtual Usuario? IdUsuarioNavigation { get; set; }
+  
 }

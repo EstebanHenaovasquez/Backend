@@ -35,8 +35,9 @@ public partial class Usuario
 
     public virtual ICollection<Abono> Abonos { get; set; } = new List<Abono>();
 
-    public virtual ICollection<Compra> Compras { get; set; } = new List<Compra>();
 
     public virtual Role? IdRolNavigation { get; set; }
+
+    public virtual Cliente? Cliente { get; set; }
 
 }

@@ -35,6 +35,10 @@ namespace AmarantaAPI.Controllers
                     FechaPedido = p.FechaPedido,
                     PrecioTotal = p.PrecioTotal ?? 0,
                     Estado = p.Estado ?? "Pendiente",
+                    Departamento = p.Departamento ?? "Seleccionar",
+                    Municipio = p.Municipio ?? "Seleccionar",
+                    Direccion = p.Direccion ?? "Digitar",
+                    Correo = p.Correo ?? "Digitar",
                     IdCliente = p.IdCliente ?? 0,
                     NombreCliente = p.IdClienteNavigation != null
                         ? p.IdClienteNavigation.Nombre + " " + p.IdClienteNavigation.Apellido
@@ -68,6 +72,10 @@ namespace AmarantaAPI.Controllers
                 FechaPedido = pedido.FechaPedido,
                 PrecioTotal = pedido.PrecioTotal ?? 0,
                 Estado = pedido.Estado ?? "Pendiente",
+                Departamento = pedido.Departamento ?? "Seleccionar",
+                Municipio = pedido.Municipio ?? "Seleccionar",
+                Direccion = pedido.Direccion ?? "Digitar",
+                Correo = pedido.Correo ?? "Digitar",
                 IdCliente = pedido.IdCliente ?? 0,
                 NombreCliente = pedido.IdClienteNavigation?.Nombre + " " + pedido.IdClienteNavigation?.Apellido,
                 Detalles = pedido.DetallesPedidos.Select(d => new DetallePedidoResponseDTO
@@ -93,7 +101,12 @@ namespace AmarantaAPI.Controllers
                 {
                     FechaPedido = dto.FechaPedido,
                     IdCliente = dto.IdCliente,
-                    Estado = "Pendiente"
+                    Estado = "Pendiente",
+                    Departamento = dto.Departamento,
+                    Municipio = dto.Municipio,
+                    Direccion = dto.Direccion,
+                    Correo = dto.Correo
+
                 };
 
                 _context.Pedidos.Add(pedido);

@@ -20,73 +20,7 @@ namespace AmarantaAPI.Controllers
             _context = context;
         }
 
-        
-
-        // PUT: api/DetallesCompras/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutDetallesCompra(int id, DetallesCompra detallesCompra)
-        {
-            if (id != detallesCompra.CodigoDetalleCompra)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(detallesCompra).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!DetallesCompraExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/DetallesCompras
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<DetallesCompra>> PostDetallesCompra(DetallesCompra detallesCompra)
-        {
-            _context.DetallesCompras.Add(detallesCompra);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetDetallesCompra", new { id = detallesCompra.CodigoDetalleCompra }, detallesCompra);
-        }
-
-        // DELETE: api/DetallesCompras/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDetallesCompra(int id)
-        {
-            var detallesCompra = await _context.DetallesCompras.FindAsync(id);
-            if (detallesCompra == null)
-            {
-                return NotFound();
-            }
-
-            _context.DetallesCompras.Remove(detallesCompra);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool DetallesCompraExists(int id)
-        {
-            return _context.DetallesCompras.Any(e => e.CodigoDetalleCompra == id);
-        }
-
-
-            // ✅ GET: api/DetallesCompras
+        // ✅ GET: api/DetallesCompras
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DetallesCompra>>> GetDetallesCompras()
         {
@@ -106,14 +40,12 @@ namespace AmarantaAPI.Controllers
                 .FirstOrDefaultAsync(d => d.CodigoDetalleCompra == id);
 
             if (detalle == null)
-            {
                 return NotFound();
-            }
 
             return detalle;
         }
 
-        // ✅ GET: api/DetallesCompras/compra/5 (detalles por compra con productos)
+        // ✅ GET: api/DetallesCompras/compra/5
         [HttpGet("compra/{idCompra}")]
         public async Task<ActionResult<IEnumerable<object>>> GetDetallesByCompra(int idCompra)
         {
@@ -125,21 +57,84 @@ namespace AmarantaAPI.Controllers
                     d.CodigoDetalleCompra,
                     d.CodigoCompra,
                     d.CodigoProducto,
-                    NombreProducto = d.CodigoProductoNavigation != null ? d.CodigoProductoNavigation.NombreProducto : null,
-                    PrecioUnitario = d.CodigoProductoNavigation != null ? d.CodigoProductoNavigation.Precio : null,
+                    NombreProducto = d.CodigoProductoNavigation != null ? d.CodigoProductoNavigation.NombreProducto : d.NombreProducto,
+                    PrecioUnitario = d.CodigoProductoNavigation != null ? d.CodigoProductoNavigation.Precio : d.PrecioUnitario,
                     d.Cantidad,
                     d.Subtotal
                 })
                 .ToListAsync();
 
             if (detalles == null || !detalles.Any())
-            {
                 return NotFound(new { message = "No se encontraron detalles para esta compra." });
-            }
 
             return Ok(detalles);
         }
 
-    }
+        // ✅ POST: api/DetallesCompras
+        [HttpPost]
+        public async Task<ActionResult<DetallesCompra>> PostDetallesCompra(DetallesCompra detallesCompra)
+        {
+            _context.DetallesCompras.Add(detallesCompra);
+            await _context.SaveChangesAsync();
 
+            return CreatedAtAction(nameof(GetDetalleCompra), new { id = detallesCompra.CodigoDetalleCompra }, detallesCompra);
+        }
+
+        // ✅ POST: api/DetallesCompras/multiple
+        // 👉 Permite registrar varios productos en una sola compra
+        [HttpPost("multiple")]
+        public async Task<IActionResult> PostDetallesCompraMultiple([FromBody] List<DetallesCompra> detallesCompras)
+        {
+            if (detallesCompras == null || !detallesCompras.Any())
+                return BadRequest(new { message = "No se enviaron detalles válidos." });
+
+            await _context.DetallesCompras.AddRangeAsync(detallesCompras);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Detalles de compra agregados correctamente." });
+        }
+
+        // ✅ PUT: api/DetallesCompras/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutDetallesCompra(int id, DetallesCompra detallesCompra)
+        {
+            if (id != detallesCompra.CodigoDetalleCompra)
+                return BadRequest();
+
+            _context.Entry(detallesCompra).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!DetallesCompraExists(id))
+                    return NotFound();
+                else
+                    throw;
+            }
+
+            return NoContent();
+        }
+
+        // ✅ DELETE: api/DetallesCompras/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteDetallesCompra(int id)
+        {
+            var detallesCompra = await _context.DetallesCompras.FindAsync(id);
+            if (detallesCompra == null)
+                return NotFound();
+
+            _context.DetallesCompras.Remove(detallesCompra);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool DetallesCompraExists(int id)
+        {
+            return _context.DetallesCompras.Any(e => e.CodigoDetalleCompra == id);
+        }
+    }
 }

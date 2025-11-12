@@ -59,7 +59,7 @@ namespace AmarantaAPI.DTOs
 
     public class CodigoVerificacionDTO
     {
-        public string Correo { get; set; }
-        public string Codigo { get; set; }
+        public string? Correo { get; set; }
+        public string? Codigo { get; set; }
     }
 }

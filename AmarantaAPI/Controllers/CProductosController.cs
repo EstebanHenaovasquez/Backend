@@ -69,20 +69,32 @@ namespace AmarantaAPI.Controllers
         //    return NoContent();
         //}
 
+        
+
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategoria(int id, [FromBody] ActualizarCProductoDTO dto)
         {
             var categoria = await _context.CProductos.FindAsync(id);
             if (categoria == null)
-                return NotFound();
+                return NotFound(new { mensaje = "Categoría no encontrada." });
 
-            if (dto.NombreCategoria != null) categoria.NombreCategoria = dto.NombreCategoria;
-            if (dto.Descripcion != null) categoria.Descripcion = dto.Descripcion;
+            if (dto.NombreCategoria != null)
+                categoria.NombreCategoria = dto.NombreCategoria;
+
+            if (dto.Descripcion != null)
+                categoria.Descripcion = dto.Descripcion;
+
+            if (dto.Estado.HasValue) // 👈 Solo actualiza si se envía el valor
+                categoria.Estado = dto.Estado.Value;
 
             await _context.SaveChangesAsync();
 
-            // ✅ devolvemos el objeto actualizado
-            return Ok(categoria);
+            return Ok(new
+            {
+                exito = true,
+                mensaje = "Categoría actualizada correctamente.",
+                categoria
+            });
         }
 
 
