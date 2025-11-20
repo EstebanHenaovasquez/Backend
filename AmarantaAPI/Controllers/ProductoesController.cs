@@ -53,7 +53,8 @@ namespace AmarantaAPI.Controllers
                 Imagen = urlImagen,
                 Stock = dto.Stock,
                 Precio = dto.Precio,
-                IdCategoria = dto.IdCategoria
+                IdCategoria = dto.IdCategoria,
+                Estado = true
             };
 
             _context.Productos.Add(producto);

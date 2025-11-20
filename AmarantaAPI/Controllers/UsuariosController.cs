@@ -174,59 +174,6 @@ namespace AmarantaAPI.Controllers
             return NoContent();
         }
 
-        //[HttpPost("Login")]
-        //public async Task<IActionResult> Login([FromBody] LoginDTO login)
-        //{
-        //    if (login == null || string.IsNullOrWhiteSpace(login.Correo) || string.IsNullOrWhiteSpace(login.Clave))
-        //    {
-        //        return BadRequest(new { exito = false, mensaje = "Datos incompletos." });
-        //    }
-
-        //    var usuario = await _context.Usuarios
-        //        .Include(u => u.IdRolNavigation)
-        //        .Include(u => u.Cliente) // 👈 Por si el usuario es cliente
-        //        .FirstOrDefaultAsync(u => u.Correo == login.Correo && u.Clave == login.Clave);
-
-        //    if (usuario == null)
-        //    {
-        //        return Unauthorized(new { exito = false, mensaje = "Correo o clave incorrectos." });
-        //    }
-
-        //    // Generar y guardar código
-        //    var codigo = new Random().Next(100000, 999999).ToString();
-        //    usuario.CodigoVerificacion = codigo;
-        //    await _context.SaveChangesAsync();
-
-        //    // Enviar correo
-        //    var enviado = await _emailHelper.EnviarCorreoAsync(
-        //        usuario.Correo,
-        //        "Código de verificación de Amaranta",
-        //        codigo,
-        //        "Tu código de verificación es el siguiente:"
-        //    );
-
-        //    if (!enviado)
-        //    {
-        //        return StatusCode(500, new { exito = false, mensaje = "No se pudo enviar el código al correo." });
-        //    }
-
-        //    // ✅ Respuesta completa
-        //    return Ok(new
-        //    {
-        //        exito = true,
-        //        mensaje = "Código enviado al correo.",
-        //        usuario = new
-        //        {
-        //            idUsuario = usuario.IdUsuario,
-        //            nombre = usuario.Nombre,
-        //            apellido = usuario.Apellido,
-        //            correo = usuario.Correo,
-        //            rol = usuario.IdRolNavigation?.NombreRol,
-        //            idCliente = usuario.Cliente?.IdCliente // 👈 si aplica
-        //        }
-        //    });
-        //}
-
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO login)
         {
@@ -332,7 +279,6 @@ namespace AmarantaAPI.Controllers
             }
         }
 
-
         public class CorreoDTO
         {
             public string Correo { get; set; }
@@ -349,7 +295,6 @@ namespace AmarantaAPI.Controllers
             usuario.CodigoVerificacion = codigo;
             await _context.SaveChangesAsync();
 
-
             var enviado = await _emailHelper.EnviarCorreoAsync(
                 dto.Correo,
                 "Código de verificación de Amaranta",
@@ -363,38 +308,7 @@ namespace AmarantaAPI.Controllers
             return Ok(new { mensaje = "Código enviado correctamente." });
         }
 
-        //[HttpPost("VerificarCodigo")]
-        //public async Task<IActionResult> VerificarCodigo([FromBody] CodigoVerificacionDTO dto)
-        //{
-        //    if (string.IsNullOrWhiteSpace(dto.Correo) || string.IsNullOrWhiteSpace(dto.Codigo))
-        //        return BadRequest(new { exito = false, mensaje = "Correo o código inválido." });
-
-        //    var usuario = await _context.Usuarios
-        //        .Include(u => u.IdRolNavigation)
-        //        .FirstOrDefaultAsync(u => u.Correo == dto.Correo && u.CodigoVerificacion == dto.Codigo);
-
-        //    if (usuario == null)
-        //        return Unauthorized(new { exito = false, mensaje = "Código incorrecto o ya expirado." });
-
-        //    // ✅ Limpia el código para no reutilizarlo
-        //    usuario.CodigoVerificacion = null;
-        //    await _context.SaveChangesAsync();
-
-        //    return Ok(new
-        //    {
-        //        exito = true,
-        //        mensaje = "Código verificado correctamente.",
-        //        usuario = new
-        //        {
-        //            nombre = usuario.Nombre,
-        //            apellido = usuario.Apellido,
-        //            correo = usuario.Correo,
-        //            rol = usuario.IdRolNavigation?.NombreRol,
-        //            idCliente = usuario.Cliente?.IdCliente
-        //        }
-        //    });
-        //}
-
+        // 🔥 MÉTODO SEPARADO: Verificación para LOGIN/REGISTRO (LIMPIA el código)
         [HttpPost("VerificarCodigo")]
         public async Task<IActionResult> VerificarCodigo([FromBody] CodigoVerificacionDTO dto)
         {
@@ -435,7 +349,7 @@ namespace AmarantaAPI.Controllers
                 usuario.Cliente = nuevoCliente;
             }
 
-            // Limpiar código
+            // ✅ LIMPIAR CÓDIGO (solo para login/registro)
             usuario.CodigoVerificacion = null;
             await _context.SaveChangesAsync();
 
@@ -455,6 +369,87 @@ namespace AmarantaAPI.Controllers
             });
         }
 
+        // 🔥 NUEVO MÉTODO: Verificación para RECUPERACIÓN (NO limpia el código)
+        [HttpPost("VerificarCodigoRecuperacion")]
+        public async Task<IActionResult> VerificarCodigoRecuperacion([FromBody] CodigoVerificacionDTO dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Correo) || string.IsNullOrWhiteSpace(dto.Codigo))
+                return BadRequest(new { exito = false, mensaje = "Correo o código inválido." });
+
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Correo == dto.Correo && u.CodigoVerificacion == dto.Codigo);
+
+            if (usuario == null)
+                return Unauthorized(new { exito = false, mensaje = "Código incorrecto o ya expirado." });
+
+            // ✅ NO LIMPIAR EL CÓDIGO - se usará en RestablecerClave
+            // usuario.CodigoVerificacion = null;  // ← NO HACER ESTO
+            // await _context.SaveChangesAsync();   // ← NO HACER ESTO
+
+            return Ok(new
+            {
+                exito = true,
+                mensaje = "Código verificado correctamente. Ahora puedes restablecer tu contraseña."
+            });
+        }
+
+        // 🔥 NUEVO MÉTODO: Solicitar recuperación de contraseña
+        [HttpPost("SolicitarRecuperacion")]
+        public async Task<IActionResult> SolicitarRecuperacion([FromBody] CorreoDTO dto)
+        {
+            try
+            {
+                Console.WriteLine($"🔍 INICIO SolicitarRecuperacion para: {dto.Correo}");
+
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == dto.Correo);
+
+                if (usuario == null)
+                {
+                    Console.WriteLine("❌ Usuario no encontrado en BD");
+                    // Por seguridad, no reveles que el correo no existe
+                    return Ok(new { mensaje = "Si el correo existe, se enviarán las instrucciones." });
+                }
+
+                Console.WriteLine($"✅ Usuario encontrado: {usuario.Nombre} (ID: {usuario.IdUsuario})");
+
+                // ✅ GENERAR NUEVO CÓDIGO
+                var codigo = new Random().Next(100000, 999999).ToString();
+                Console.WriteLine($"🔐 Código generado: {codigo}");
+
+                // ✅ GUARDAR EN BD
+                usuario.CodigoVerificacion = codigo;
+                Console.WriteLine($"💾 Asignando código a usuario...");
+
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"💾 SaveChangesAsync completado.");
+                Console.WriteLine($"🔍 Código después de guardar: {usuario.CodigoVerificacion}");
+
+                // ✅ ENVIAR CORREO
+                Console.WriteLine($"📧 Enviando correo...");
+                var enviado = await _emailHelper.EnviarCorreoAsync(
+                    dto.Correo,
+                    "Código de Recuperación - Amaranta",
+                    codigo,
+                    "Usa este código para restablecer tu contraseña:"
+                );
+
+                if (!enviado)
+                {
+                    Console.WriteLine("❌ Error enviando correo");
+                    return StatusCode(500, new { mensaje = "Error al enviar el código de recuperación." });
+                }
+
+                Console.WriteLine($"✅ CORREO ENVIADO - Código: {codigo}");
+                return Ok(new { mensaje = "Código de recuperación enviado a tu correo." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"💥 ERROR en SolicitarRecuperacion: {ex.Message}");
+                Console.WriteLine($"💥 StackTrace: {ex.StackTrace}");
+                return StatusCode(500, new { mensaje = "Error interno del servidor." });
+            }
+        }
 
         [HttpGet("ObtenerPorCorreo")]
         public async Task<IActionResult> ObtenerPorCorreo([FromQuery] string correo)
@@ -475,7 +470,6 @@ namespace AmarantaAPI.Controllers
                 usuario.Departamento,
                 usuario.Municipio,
                 usuario.Direccion
-                //usuario.Rol
             });
         }
 
@@ -500,36 +494,47 @@ namespace AmarantaAPI.Controllers
             return NoContent();
         }
 
-
         [HttpPost("RestablecerClave")]
         public async Task<IActionResult> RestablecerClave([FromBody] RestablecerClaveDTO dto)
         {
-            Console.WriteLine($"📩 Correo recibido: {dto?.Correo}");
-            Console.WriteLine($"🔑 Código recibido: {dto?.Codigo}");
-            Console.WriteLine($"🆕 Nueva clave: {dto?.NuevaClave}");
-
-            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == dto.Correo);
-
-            if (usuario == null)
+            try
             {
-                Console.WriteLine("❌ Usuario no encontrado.");
-                return BadRequest(new { mensaje = "Usuario no encontrado." });
+                Console.WriteLine($"🔍 INICIO RestablecerClave");
+                Console.WriteLine($"📩 Correo: {dto?.Correo}");
+                Console.WriteLine($"🔑 Código recibido: {dto?.Codigo}");
+                Console.WriteLine($"🆕 Nueva clave: {dto?.NuevaClave}");
+
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == dto.Correo);
+
+                if (usuario == null)
+                {
+                    Console.WriteLine("❌ Usuario no encontrado.");
+                    return BadRequest(new { mensaje = "Usuario no encontrado." });
+                }
+
+                Console.WriteLine($"✅ Usuario encontrado: {usuario.Nombre}");
+                Console.WriteLine($"💾 Código en BD: '{usuario.CodigoVerificacion}'");
+                Console.WriteLine($"🔑 Código recibido: '{dto.Codigo}'");
+                Console.WriteLine($"🔍 Coinciden?: {usuario.CodigoVerificacion == dto.Codigo}");
+
+                if (usuario.CodigoVerificacion != dto.Codigo)
+                {
+                    Console.WriteLine("⚠️ Código no coincide.");
+                    return BadRequest(new { mensaje = "Código inválido o expirado." });
+                }
+
+                usuario.Clave = dto.NuevaClave;
+                usuario.CodigoVerificacion = null; // ✅ Ahora SÍ limpiamos después de restablecer
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine("✅ Contraseña restablecida correctamente.");
+                return Ok(new { mensaje = "Contraseña actualizada correctamente." });
             }
-
-            Console.WriteLine($"💾 Código en BD: {usuario.CodigoVerificacion}");
-
-            if (usuario.CodigoVerificacion != dto.Codigo)
+            catch (Exception ex)
             {
-                Console.WriteLine("⚠️ Código no coincide.");
-                return BadRequest(new { mensaje = "Código inválido o expirado." });
+                Console.WriteLine($"💥 ERROR en RestablecerClave: {ex.Message}");
+                return StatusCode(500, new { mensaje = "Error interno del servidor." });
             }
-
-            usuario.Clave = dto.NuevaClave;
-            usuario.CodigoVerificacion = null;
-            await _context.SaveChangesAsync();
-
-            Console.WriteLine("✅ Contraseña restablecida correctamente.");
-            return Ok(new { mensaje = "Contraseña actualizada correctamente." });
         }
 
         [HttpPost("CerrarSesion")]
@@ -537,8 +542,6 @@ namespace AmarantaAPI.Controllers
         {
             try
             {
-                // Si manejas tokens o sesiones, aquí podrías invalidarlos.
-                // Pero si solo usas login simple, basta con confirmar el cierre.
                 return Ok(new
                 {
                     exito = true,
@@ -557,5 +560,3 @@ namespace AmarantaAPI.Controllers
         }
     }
 }
-
-    

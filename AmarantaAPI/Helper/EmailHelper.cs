@@ -20,13 +20,39 @@ namespace AmarantaAPI.Helpers
             var email = _config["EmailSettings:Email"];
             var appPassword = _config["EmailSettings:AppPassword"];
 
-            // Ruta de la plantilla HTML
-            var rutaPlantilla = Path.Combine(Directory.GetCurrentDirectory(), "Template", "correo.html");
-            if (!File.Exists(rutaPlantilla))
-                throw new FileNotFoundException("No se encontró la plantilla de correo.", rutaPlantilla);
+            // Plantilla HTML embebida para evitar errores de archivo
+            string cuerpoHtml = @"
+<!DOCTYPE html>
+<html lang=""es"">
+<head>
+    <meta charset=""UTF-8"" />
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"" />
+    <title>{{TITULO}}</title>
+</head>
+<body style=""font-family: Georgia, 'Times New Roman', serif; background-color: #f9fafb; padding: 30px; color: #1c1917;"">
+    <div style=""max-width: 500px; margin: auto; background: #fffef9; border-radius: 12px; box-shadow: 0 4px 15px rgba(180, 83, 9, 0.3); padding: 2rem; text-align: center;"">
 
-            // Cargar el HTML y reemplazar los marcadores
-            string cuerpoHtml = await File.ReadAllTextAsync(rutaPlantilla);
+        <!-- Encabezado -->
+        <h1 style=""color: #92400e; font-size: 2rem; font-weight: bold; margin-bottom: 1rem;"">Amaranta</h1>
+
+        <!-- Título del mensaje -->
+        <h2 style=""color: #b45309; font-size: 1.3rem; margin-bottom: 1rem;"">{{TITULO}}</h2>
+
+        <!-- Texto principal -->
+        <p style=""font-size: 1rem; color: #3f3f3f; margin-bottom: 1.5rem;"">{{MENSAJE}}</p>
+
+        <!-- Código -->
+        <p style=""font-size: 2rem; font-weight: bold; color: #92400e; letter-spacing: 4px; margin-bottom: 1.5rem;"">{{CODIGO}}</p>
+
+        <!-- Pie -->
+        <p style=""font-size: 0.9rem; color: #5b4636;"">Este código expirará en pocos minutos. No lo compartas con nadie.</p>
+        <hr style=""border: none; border-top: 1px solid #e5e7eb; margin: 2rem 0;"" />
+        <p style=""font-size: 0.8rem; color: #9ca3af;"">© 2025 Amaranta. Todos los derechos reservados.</p>
+    </div>
+</body>
+</html>";
+
+            // Reemplazar los marcadores
             cuerpoHtml = cuerpoHtml
                 .Replace("{{TITULO}}", asunto)
                 .Replace("{{MENSAJE}}", mensajePersonalizado)
@@ -49,8 +75,10 @@ namespace AmarantaAPI.Helpers
                 await smtp.DisconnectAsync(true);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                // Opcional: Log del error
+                Console.WriteLine($"Error enviando correo: {ex.Message}");
                 return false;
             }
         }
